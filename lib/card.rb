@@ -1,6 +1,7 @@
 require 'byebug'
 
 class Card
+    include Comparable
     attr_reader :suit, :value
     SUIT_RANKINGS = {
         Clubs: 1,
@@ -29,7 +30,7 @@ class Card
         VALUE_RANKINGS.keys.map { |value| Card.new(suit, value) }
     end
     
-    def self.fifty_two_cards
+    def self.standard_52_cards
         cards = []
         SUIT_RANKINGS.keys.each do |suit|
             cards += self.suit_of_cards(suit)
@@ -42,25 +43,23 @@ class Card
         @value = value
     end
 
-    def >(card)
-        self_val, other_val = VALUE_RANKINGS[value], VALUE_RANKINGS[card.value]
-        unless self_val == other_val
-            return self_val > other_val
+    def <=>(card)
+        self_value = VALUE_RANKINGS[value]
+        other_value = VALUE_RANKINGS[card.value]
+        if self_value == other_value
+            self_suit_rank = SUIT_RANKINGS[suit] 
+            other_suit_rank = SUIT_RANKINGS[card.suit]
+            if self_suit_rank == other_suit_rank
+                return 0
+            elsif self_suit_rank > other_suit_rank
+                return 1
+            else
+                return -1
+            end
+        elsif self_value > other_value
+            return 1
         else
-            return SUIT_RANKINGS[suit] > SUIT_RANKINGS[card.suit]
+            return -1
         end
-    end
-
-    def <(card)
-        self_val, other_val = VALUE_RANKINGS[value], VALUE_RANKINGS[card.value]
-        unless self_val == other_val
-            return self_val < other_val
-        else
-            return SUIT_RANKINGS[suit] < SUIT_RANKINGS[card.suit]
-        end
-    end
-
-    def ==(card)
-        self.value == card.value && self.suit == card.suit
     end
 end

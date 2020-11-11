@@ -28,53 +28,31 @@ describe Card do
         let(:ace_of_hearts) { Card.new(:Hearts, ace) }
         let(:jack_of_clubs) { Card.new(:Clubs, jack) }
         let(:other_ten_of_hearts) { Card.new(:Hearts, ten) } 
-        
-        describe "#>" do
-            it "should determine if caller's value is greater" do
-                expect( ten_of_spades > nine_of_diamonds).to be true
-                expect( nine_of_diamonds > ten_of_spades ).to be false
-            end
-            it "should successfully compare face cards" do
-                expect(jack_of_clubs > ten_of_spades).to be true
-                expect(ten_of_spades > jack_of_clubs).to be false
-                expect(jack_of_clubs > ace_of_hearts).to be false
-                expect(ace_of_hearts > jack_of_clubs).to be true
-            end
-            it "should use suits to break ties" do
-                expect(ace_of_spades > ace_of_hearts).to be false
-                expect(ace_of_hearts > ace_of_spades).to be true
-                expect(ten_of_hearts > ten_of_spades).to be true
-                expect(ten_of_spades > ten_of_hearts).to be false
-            end
-        end
 
-        describe "#<" do
-            it "should determine if caller's value is lesser" do
-                expect( ten_of_spades < nine_of_diamonds).to be false
-                expect( nine_of_diamonds < ten_of_spades ).to be true
+        describe "#<=>" do
+            context "when the cards are equal" do
+                it "should return 0" do
+                    expect(ten_of_hearts <=> other_ten_of_hearts).to eq(0)
+                end
             end
-            it "should successfully compare face cards" do
-                expect(jack_of_clubs < ten_of_spades).to be false
-                expect(ten_of_spades < jack_of_clubs).to be true
-                expect(jack_of_clubs < ace_of_hearts).to be true
-                expect(ace_of_hearts < jack_of_clubs).to be false
+            context "when the receiver is higher" do
+                it "should return 1" do
+                    expect(ten_of_spades <=> nine_of_diamonds).to eq(1)
+                    expect(jack_of_clubs <=> ten_of_spades).to eq(1)
+                    expect(ace_of_hearts <=> jack_of_clubs).to eq(1)
+                    expect(ace_of_hearts <=> ace_of_spades).to eq(1)
+                    expect(ten_of_hearts <=> ten_of_spades).to eq(1)
+                end
+                
             end
-            it "should use suits to break ties" do
-                expect(ace_of_spades < ace_of_hearts).to be true
-                expect(ace_of_hearts < ace_of_spades).to be false
-                expect(ten_of_hearts < ten_of_spades).to be false
-                expect(ten_of_spades < ten_of_hearts).to be true
-            end
-        end
-
-        describe "#==" do
-            it "should return true when the suit and value are the same" do
-                expect(ten_of_hearts == other_ten_of_hearts).to be true
-            end
-            it "should return false when either the suit or value are different" do
-                expect(ten_of_hearts == nine_of_diamonds).to be false
-                expect(ten_of_hearts == ten_of_spades).to be false
-                expect(ace_of_spades == ace_of_hearts).to be false
+            context "when the receiver is lower" do
+                it "should return -1" do
+                    expect(nine_of_diamonds <=> ten_of_spades ).to eq(-1)
+                    expect(ten_of_spades <=> jack_of_clubs).to eq(-1)
+                    expect(jack_of_clubs <=> ace_of_hearts).to eq(-1)
+                    expect(ace_of_spades <=> ace_of_hearts).to eq(-1)
+                    expect(ten_of_spades <=> ten_of_hearts).to eq(-1)
+                end
             end
         end
     end
@@ -137,19 +115,19 @@ describe Card do
             end
         end
 
-        describe "::fifty_two_cards" do
-            subject(:cards) { Card.fifty_two_cards }
-            let(:cards_by_suit) { suits.map { |suit| Card.suit_of_cards(suit) } }
-            it "should return an array that holds a standard deck of 52 cards" do
+        describe "::standard_52_cards" do
+            subject(:cards) { Card.standard_52_cards }
+            let(:reference_deck) do 
+                reference_deck = []
+                suits.each { |suit| reference_deck += Card.suit_of_cards(suit) }
+                reference_deck 
+            end
+            it "should return an array that holds a standard set of 52 cards" do
                 expect(cards.length).to eq(52)
-                expect(
-                    cards_by_suit.all? do |suit_of_cards|
-                        suit_in_deck = cards.select do |card| 
-                            card.suit == suit_of_cards.first.suit 
-                        end
-                        suit_in_deck == suit_of_cards
-                    end
-                ).to be true
+                cards.each do |card| 
+                    reference_deck.delete(card) if reference_deck.include?(card)
+                end
+                expect( reference_deck.length ).to eq(0)
             end
         end
     end

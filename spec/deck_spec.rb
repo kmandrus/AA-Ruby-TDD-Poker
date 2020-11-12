@@ -2,10 +2,20 @@ require 'rspec'
 require 'deck'
 
 describe Deck do
-    let(:cards) { [3, 2, 1] }
+    let(:values) { %i(2 3 4 5 6 7 8 9 10 J Q K A) }
+    let(:suits) { %i(Clubs Spades Hearts Diamonds) }
     let(:mock_card_class) do
         mock_card_class = double("Card")
-        allow(mock_card_class).to receive(:fifty_two_cards).and_return(cards)
+        allow(mock_card_class).to receive(:suits) { suits }
+        allow(mock_card_class).to receive(:values) { values }
+        suits.each do |suit|
+            values.each do |value|
+                allow(mock_card_class)
+                    .to receive(:new)
+                    .with(suit, value) 
+                    .and_return(double("card", :suit => suit, :value => value)) 
+            end
+        end
         mock_card_class
     end
     subject(:deck) do
@@ -18,19 +28,45 @@ describe Deck do
         it 'should set a public cards array' do
             expect {deck.cards}.to_not raise_error
         end
+        it "should create a standard deck of 52 cards" do
+            expect(deck.cards.size).to eq(52)
+
+        end
         it "should be shuffled" do
-            expect(cards).to receive(:shuffle!)
-            deck
+            decks = [deck, Deck.new]
+            decks.map! do |deck|
+                deck.cards.map {|card| [card.suit, card.value]}
+            end 
+            expect(decks.first).to_not eq(decks.last)
         end
-        it "should call Cards::fifty_two_cards" do
-            expect(mock_card_class).to receive(:fifty_two_cards)
-            deck
-        end
+        
     end
 
     describe '#size' do
         it "should return the number of cards left in the deck" do
-            expect(deck.size).to eq(3)
+            expect(deck.size).to eq(deck.cards.size)
+        end
+    end
+
+    describe '#deal' do
+        it "accepts a number of cards parameter" do
+            expect {deck.deal(2)}.to_not raise_error
+        end
+        it "should reduce the size of the deck by the number of cards dealt" do
+            current_size = deck.size
+            deck.deal(1)
+            expect(deck.size).to eq(current_size - 1)
+            current_size = deck.size
+            deck.deal(3)
+            expect(deck.size).to eq(current_size - 3)
+        end
+        it "should raise an error if the deck is empty" do
+            deck.deal(deck.size)
+            expect {deck.deal(1)}.to raise_error "no cards in deck"
+        end
+        it "raises an error if not enough cards are left" do
+            expect { deck.deal(deck.size + 1) }
+                .to raise_error "not enough cards left"
         end
     end
 
@@ -40,25 +76,10 @@ describe Deck do
 
         end
         context "when the deck is empty" do
-            let(:cards) { [] }
             it "should return true" do
+                deck.deal(deck.size)
                 expect(deck.empty?).to be true
             end
-        end
-    end
-
-    describe '#draw' do
-        it "should return the top card of the deck" do
-            expect(deck.cards.last).to eq(deck.draw)
-        end
-        it "should reduce the size of the deck by 1" do
-            current_size = deck.size
-            deck.draw
-            expect(deck.size).to eq(current_size - 1)
-        end
-        it "should raise an error if the deck is empty" do
-            deck.size.times {deck.draw}
-            expect {deck.draw}.to raise_error "no cards in deck"
         end
     end
     

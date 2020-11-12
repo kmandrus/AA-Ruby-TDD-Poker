@@ -3,44 +3,23 @@ require 'byebug'
 class Card
     include Comparable
     attr_reader :suit, :value
-    SUIT_RANKINGS = {
-        Clubs: 1,
-        Spades: 2,
-        Hearts: 3,
-        Diamonds: 4
-    }.freeze
-    VALUE_RANKINGS = {
-        '2': 2,
-        '3': 3,
-        '4': 4,
-        '5': 5,
-        '6': 6,
-        '7': 7,
-        '8': 8,
-        '9': 9,
-        '10': 10,
-        Jack: 11,
-        Queen: 12,
-        King: 13,
-        Ace: 14
-    }.freeze
 
-    def self.suit_of_cards(suit)
-        raise "invalid suit" unless SUIT_RANKINGS.keys.include?(suit)
-        VALUE_RANKINGS.keys.map { |value| Card.new(suit, value) }
+    def self.suits
+        SUIT_RANKINGS.keys
     end
-    
-    def self.standard_52_cards
-        cards = []
-        SUIT_RANKINGS.keys.each do |suit|
-            cards += self.suit_of_cards(suit)
-        end
-        cards
+    def self.values
+        VALUE_RANKINGS.keys
     end
 
-    def initialize(suit, value) 
+    def initialize(suit, value)
+        raise "invalid suit" unless Card.suits.include?(suit)
+        raise "invalid value" unless Card.values.include?(value)
         @suit = suit
         @value = value
+    end
+
+    def value_ranking
+        VALUE_RANKINGS[value]
     end
 
     def <=>(card)
@@ -62,4 +41,27 @@ class Card
             return -1
         end
     end
+
+    private
+    SUIT_RANKINGS = {
+        Clubs: 1,
+        Spades: 2,
+        Hearts: 3,
+        Diamonds: 4
+    }.freeze
+    VALUE_RANKINGS = {
+        '2': 2,
+        '3': 3,
+        '4': 4,
+        '5': 5,
+        '6': 6,
+        '7': 7,
+        '8': 8,
+        '9': 9,
+        '10': 10,
+        J: 11,
+        Q: 12,
+        K: 13,
+        A: 14
+    }.freeze
 end

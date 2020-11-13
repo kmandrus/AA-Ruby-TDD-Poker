@@ -32,7 +32,4 @@ class Deck
             dealt_cards
         end
     end
-
-    
-
 end

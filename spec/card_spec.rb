@@ -5,6 +5,7 @@ describe Card do
     describe "#initialize" do
         let(:value) { :'10' }
         subject(:card) { Card.new(:Spades, value) }
+
         it "should accept a suit and value" do
             expect{card}.to_not raise_error
         end
@@ -47,29 +48,26 @@ describe Card do
         let(:other_jack_of_clubs) { Card.new(:Clubs, jack) }
 
         describe "#<=>" do
-            context "when the cards are equal" do
+            context "when the cards are equal it" do
                 it "should return 0" do
                     expect(ten_of_hearts <=> other_ten_of_hearts).to eq(0)
                     expect(jack_of_clubs <=> other_jack_of_clubs).to eq(0)
+                    expect(ace_of_hearts <=> ace_of_spades).to eq(0)
                 end
             end
-            context "when the receiver is higher" do
+            context "when the receiver is higher it" do
                 it "should return 1" do
                     expect(ten_of_spades <=> nine_of_diamonds).to eq(1)
                     expect(jack_of_clubs <=> ten_of_spades).to eq(1)
                     expect(ace_of_hearts <=> jack_of_clubs).to eq(1)
-                    expect(ace_of_hearts <=> ace_of_spades).to eq(1)
-                    expect(ten_of_hearts <=> ten_of_spades).to eq(1)
                 end
                 
             end
-            context "when the receiver is lower" do
+            context "when the receiver is lower it" do
                 it "should return -1" do
                     expect(nine_of_diamonds <=> ten_of_spades ).to eq(-1)
                     expect(ten_of_spades <=> jack_of_clubs).to eq(-1)
                     expect(jack_of_clubs <=> ace_of_hearts).to eq(-1)
-                    expect(ace_of_spades <=> ace_of_hearts).to eq(-1)
-                    expect(ten_of_spades <=> ten_of_hearts).to eq(-1)
                 end
             end
         end

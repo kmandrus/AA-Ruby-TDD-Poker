@@ -23,26 +23,9 @@ class Card
     end
 
     def <=>(card)
-        self_value = VALUE_RANKINGS[value]
-        other_value = VALUE_RANKINGS[card.value]
-        if self_value == other_value
-            self_suit_rank = SUIT_RANKINGS[suit] 
-            other_suit_rank = SUIT_RANKINGS[card.suit]
-            if self_suit_rank == other_suit_rank
-                return 0
-            elsif self_suit_rank > other_suit_rank
-                return 1
-            else
-                return -1
-            end
-        elsif self_value > other_value
-            return 1
-        else
-            return -1
-        end
+        VALUE_RANKINGS[value] <=> VALUE_RANKINGS[card.value]
     end
 
-    private
     SUIT_RANKINGS = {
         Clubs: 1,
         Spades: 2,

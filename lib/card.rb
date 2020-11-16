@@ -1,3 +1,4 @@
+require 'colorize'
 require 'byebug'
 
 class Card
@@ -20,6 +21,10 @@ class Card
 
     def value_ranking
         VALUE_RANKINGS[value]
+    end
+
+    def to_s
+        value.to_s + SUIT_TO_S[suit]
     end
 
     def <=>(card)
@@ -46,5 +51,11 @@ class Card
         Q: 12,
         K: 13,
         A: 14
+    }.freeze
+    SUIT_TO_S = {
+        Clubs: '♣',
+        Spades: '♠',
+        Hearts: '♥'.colorize(:red),
+        Diamonds: '♦'.colorize(:red)
     }.freeze
 end

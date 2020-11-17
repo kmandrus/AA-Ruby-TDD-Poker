@@ -9,12 +9,12 @@ class Hand
         @cards.dup
     end
 
-    def cards_by_value #grouped by value - change to return an array of arrays
+    def grouped_cards
         card_hash = Hash.new {Array.new}
         @cards.each do |card|
             card_hash[card.value] += [card]
         end
-        card_hash
+        card_hash.values
     end
 
     def add(new_cards)
@@ -127,28 +127,16 @@ class Hand
         true
     end
     def four_of_a_kind?
-        cards.any? do |card|
-            cards.count {|count_card| card.value == count_card.value} == 4
-        end
+        grouped_cards.any? { |group| group.length == 4 }
     end
     def three_of_a_kind?
-        cards.any? do |card|
-            cards.count {|count_card| card.value == count_card.value} == 3
-        end
+        grouped_cards.any? { |group| group.length == 3 }
     end
     def pair?
-        pair_count = 0
-        cards_by_value.each_value do |card_group|
-            pair_count += 1 if card_group.length == 2
-        end
-        pair_count == 1
+        grouped_cards.count { |group| group.length == 2 } == 1
     end 
     def two_pair?
-        num_pairs = 0
-        cards_by_value.each_value do |card_group|
-            num_pairs += 1 if card_group.length == 2
-        end
-        num_pairs == 2
+        grouped_cards.count { |group| group.length == 2 } == 2
     end
     def full_house?
         pair? && three_of_a_kind?
@@ -169,8 +157,7 @@ class Hand
     end
 
     def compare_num_of_a_kind(their_hand)
-        hands = [cards_by_value, their_hand.cards_by_value]
-        hands.map! { |hand| hand.values }
+        hands = [grouped_cards, their_hand.grouped_cards]
         kinds = hands.map do |hand|
             hand.max { |set_1, set_2| set_1.length <=> set_2.length }
         end 
@@ -206,8 +193,7 @@ class Hand
         cards.first <=> their_hand.cards.first
     end
     def compare_full_houses(their_hand)
-        hands = [cards_by_value, their_hand.cards_by_value]
-        hands.map! { |hand| hand.values }
+        hands = [grouped_cards, their_hand.grouped_cards]
         hands = hands.map do |hand|
             hand.sort { |set_1, set_2| set_2.length <=> set_1.length }
         end
@@ -220,9 +206,9 @@ class Hand
         end
     end
     def compare_two_pair(their_hand)
-        hands = [cards_by_value, their_hand.cards_by_value]
+        hands = [grouped_cards, their_hand.grouped_cards]
         pairs = hands.map do |hand|
-            hand.values.select { |cards| cards.length == 2 }
+            hand.select { |cards| cards.length == 2 }
         end
         pairs.map! do |set_of_pairs| 
             set_of_pairs.sort do |pair_1, pair_2| 
@@ -230,7 +216,7 @@ class Hand
             end
         end
         kickers = hands.map do |hand|
-            hand.values.select { |cards| cards.length == 1 }.flatten
+            hand.select { |cards| cards.length == 1 }.flatten
         end
         my_high_pair, my_low_pair = pairs.first
         their_high_pair, their_low_pair = pairs.last

@@ -103,24 +103,24 @@ describe Hand do
             end
         end
     end
-    describe "#cards_by_value" do
+    describe "#grouped_cards" do
         subject(:hand) do
             hand_strs = File.readlines("spec/example_hands/test_hands_type.txt")
             to_hand(hand_strs[1]) 
         end
-        let(:cards_by_value_hash) do
-            { 
-                :J => [
+        let(:groups) do
+            [ 
+                [
                     Card.new(:Diamonds, :J),
                     Card.new(:Hearts, :J),
                     Card.new(:Spades, :J),
                     Card.new(:Clubs, :J)
                 ],
-                :'7' => [Card.new(:Hearts, :'7')]
-            }
+                [Card.new(:Hearts, :'7')]
+            ]
         end
-        it "creates a hash with card values as keys and the cards as values" do
-            expect(hand.cards_by_value).to eq(cards_by_value_hash)
+        it "creates an array of arrays with cards grouped by value" do
+            expect(hand.grouped_cards).to eq(groups)
         end   
     end
 

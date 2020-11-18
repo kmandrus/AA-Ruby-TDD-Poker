@@ -12,6 +12,18 @@ class Card
         VALUE_RANKINGS.keys
     end
 
+    def self.cards_from_string(str)
+        suit_converter = {
+            "D" => :Diamonds,
+            "H" => :Hearts,
+            "S" => :Spades,
+            "C" => :Clubs
+        }
+        str.split.map do |card_str|
+            Card.new(suit_converter[card_str[0]], card_str[1..-1].to_sym)
+        end
+    end
+
     def initialize(suit, value)
         raise "invalid suit" unless Card.suits.include?(suit)
         raise "invalid value" unless Card.values.include?(value)

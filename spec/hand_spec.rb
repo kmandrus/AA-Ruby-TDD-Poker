@@ -10,33 +10,25 @@ def load_hands(file_path)
     hands
 end
 def to_hand(cards_string)
-    suit_converter = {
-        "D" => :Diamonds,
-        "H" => :Hearts,
-        "S" => :Spades,
-        "C" => :Clubs
-    }
-    card_set = cards_string.split.map do |str|
-        suit = suit_converter[str[0]]
-        value = str[1..-1].to_sym
-        Card.new(suit, value)
-    end
-    Hand.new(card_set)
+    cards = Card.cards_from_string(cards_string)
+    Hand.new(cards)
 end
-def test_between_hand_types
-    context "when comparing hands of differing types, it" do
-        ranked_hands = load_hands("spec/example_hands/test_hands_type.txt")
-        ranked_hands.each_with_index do |hand, i|
-            winning_hands = ranked_hands[0...i]
-            winning_hands.each do |winning_hand|
-                it "ranks a #{hand.type} lower than a #{winning_hand.type}" do
-                    expect(hand <=> winning_hand).to eq(-1)
-                end
-            end
-            losing_hands = ranked_hands[i+1..-1]
-            losing_hands.each do |losing_hand|
-                it "ranks a #{hand.type} higher than a #{losing_hand.type}" do
-                    expect(hand <=> losing_hand).to eq(1)
+def test_hands_ordered_best_to_worst(file_name)
+    hands = load_hands("spec/example_hands/" + file_name + ".txt")
+    hands.each_with_index do |hand, test_i|
+        hands.each_with_index do |other_hand, other_i|
+            context "when comparing #{file_name}" do
+                subject(:test_hand) { hand }
+                if test_i < other_i
+                    let(:winning_hand) { other_hand }
+                    it "#{hand} beats #{other_hand}" do
+                        expect(test_hand <=> winning_hand).to eq(1)
+                    end
+                elsif test_i > other_i
+                    let(:winning_hand) { other_hand }
+                    it "#{hand} loses to #{other_hand}" do
+                        expect(test_hand <=> winning_hand).to eq(-1)
+                    end
                 end
             end
         end
@@ -54,35 +46,10 @@ def test_ties
         i += 2
     end
 end
-def test_hands_of_type(type, hands)
-    context "when comparing #{type}, it" do
-        hands.each_with_index do |hand, i|
-            winning_hands = hands[0...i]
-            winning_hands.each do |winning_hand|
-                it "ranks #{hand} lower than #{winning_hand}" do
-                    expect(hand <=> winning_hand).to eq(-1)
-                end
-            end
-            losing_hands = hands[i+1..-1]
-            losing_hands.each do |losing_hand|
-                it "ranks #{hand} higher than #{losing_hand}" do
-                    expect(hand <=> losing_hand).to eq(1)
-                end
-            end
-        end
-    end
-end
-def test_within_hand_types
-    hand_types = %w(straight_flushes four_of_a_kinds full_houses flushes straights three_of_a_kinds two_pairs pairs high_cards)
-    hand_types.each do |type|
-        example_hands = load_hands("spec/example_hands/" + type + ".txt")
-        test_hands_of_type(type, example_hands)
-    end
-end
 
 describe Hand do
     subject(:hand) do
-        hand_strs = File.readlines("spec/example_hands/test_hands_type.txt")
+        hand_strs = File.readlines("spec/example_hands/hands_of_different_types.txt")
         to_hand(hand_strs[3]) 
     end
 
@@ -105,7 +72,7 @@ describe Hand do
     end
     describe "#grouped_cards" do
         subject(:hand) do
-            hand_strs = File.readlines("spec/example_hands/test_hands_type.txt")
+            hand_strs = File.readlines("spec/example_hands/hands_of_different_types.txt")
             to_hand(hand_strs[1]) 
         end
         let(:groups) do
@@ -157,8 +124,20 @@ describe Hand do
     end
 
     describe "#<=>" do
-        test_between_hand_types
-        test_within_hand_types
+        filenames_of_hands = %w(
+            hands_of_different_types
+            straight_flushes 
+            four_of_a_kinds 
+            full_houses 
+            flushes 
+            straights 
+            three_of_a_kinds 
+            two_pairs 
+            pairs 
+            high_cards)
+            filenames_of_hands.each do |filename|
+                test_hands_ordered_best_to_worst(filename)
+            end
         test_ties
     end
 end

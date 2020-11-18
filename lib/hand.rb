@@ -62,9 +62,7 @@ class Hand
     end
 
     def to_s
-        card_strs = []
-        @cards.each { |card| card_strs << card.to_s}
-        card_strs.join(", ")
+        @cards.map(&:to_s).join(", ")
     end
 
     def type

@@ -63,14 +63,14 @@ describe Hand do
             end
         end
         context "when passed cards" do
-            let(:cards) { Array.new(5, double("card")) }
+            let(:cards) { Card.cards_from_string("C3 D5 SJ HQ DA") }
             subject(:hand) { Hand.new(cards) }
             it "sets the cards variable to the passed cards" do
                 expect(hand.cards).to eq(cards)
             end
         end
     end
-    describe "#grouped_cards" do
+    describe "#group_by_value" do
         subject(:hand) do
             hand_strs = File.readlines("spec/example_hands/hands_of_different_types.txt")
             to_hand(hand_strs[1]) 
@@ -87,7 +87,7 @@ describe Hand do
             ]
         end
         it "creates an array of arrays with cards grouped by value" do
-            expect(hand.grouped_cards).to eq(groups)
+            expect(hand.group_by_value).to eq(groups)
         end   
     end
 

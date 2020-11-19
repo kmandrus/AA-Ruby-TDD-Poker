@@ -1,106 +1,80 @@
+require_relative "card.rb"
+require_relative 'hand_types/hand_type_mixins.rb'
+filenames = %w(hand_type high_card pair three_of_a_kind four_of_a_kind two_pair straight flush full_house straight_flush)
+filenames.each { |file| require_relative "hand_types/" + file + ".rb" }
+
 class Hand
-    include Comparable
+    include Comparable, Descending_Order, Group_by_Value
 
     def initialize(cards=[])
         @cards = cards
+        @hand_type = update_hand_type
     end
 
     def cards
         @cards.dup
     end
 
-    def grouped_cards
-        card_hash = Hash.new {Array.new}
-        @cards.each do |card|
-            card_hash[card.value] += [card]
-        end
-        card_hash.values
-    end
-
     def add(new_cards)
         @cards += new_cards
+        update_hand_type
     end
 
     def discard(some_cards)
-        some_cards.each do |card_1| 
-            if @cards.none? { |card_2| card_1.value == card_2.value && card_1.suit == card_2.suit }
-                raise "card to discard not in hand"
+        some_cards.each do |card_to_discard|
+            card_found = false
+            @cards.each_with_index do |card_in_hand, i|
+                if card_in_hand.value == card_to_discard.value &&
+                    card_in_hand.suit == card_to_discard.suit
+                    
+                    card_found = true
+                    @cards.delete_at(i)
+                    break
+                end
             end
-            @cards.delete(card_1)
+            raise "card to discard not in hand" unless card_found
         end
+        some_cards.length
     end
 
     def <=>(other_hand)
-        if type == other_hand.type
-            case type
-            when :straight_flush
-                compare_straights(other_hand)
-            when :four_of_a_kind
-                compare_num_of_a_kind(other_hand)
-            when :full_house
-                compare_full_houses(other_hand)
-            when :flush
-                compare_high_cards(other_hand)
-            when :straight
-                compare_straights(other_hand)
-            when :three_of_a_kind
-                compare_num_of_a_kind(other_hand)
-            when :two_pair
-                compare_two_pair(other_hand)
-            when :pair
-                compare_num_of_a_kind(other_hand)
-            when :high_card
-                compare_high_cards(other_hand)
-            else
-                raise "hand type not found"
-            end
-        elsif HAND_RANKINGS[type] > HAND_RANKINGS[other_hand.type]
-            return 1
-        else
-            return -1
-        end
+        @hand_type <=> other_hand.hand_type
+    end
+
+    def name
+        @hand_type.name
     end
 
     def to_s
         @cards.map(&:to_s).join(", ")
     end
 
-    def type
+    protected
+    attr_reader :hand_type
+    
+    private
+    def update_hand_type
         if straight_flush?
-            :straight_flush
+            @hand_type = Straight_Flush.new(cards)
         elsif four_of_a_kind?
-            :four_of_a_kind
+            @hand_type = Four_of_a_Kind.new(cards)
         elsif full_house?
-            :full_house
+            @hand_type = Full_House.new(cards)
         elsif flush?
-            :flush
+            @hand_type = Flush.new(cards)
         elsif straight?
-            :straight
+            @hand_type = Straight.new(cards)
         elsif three_of_a_kind?
-            :three_of_a_kind
+            @hand_type = Three_of_a_Kind.new(cards)
         elsif two_pair?
-            :two_pair
+            @hand_type = Two_Pair.new(cards)
         elsif pair?
-            :pair
+            @hand_type = Pair.new(cards)
         else
-            :high_card
+            @hand_type = High_Card.new(cards)
         end
     end
 
-    private
-    HAND_RANKINGS = {
-        straight_flush: 9,
-        four_of_a_kind: 8,
-        full_house: 7,
-        flush: 6,
-        straight: 5,
-        three_of_a_kind: 4,
-        two_pair: 3,
-        pair: 2,
-        high_card: 1
-    }
-    
-    protected
     def straight_flush?
         flush? && straight?
     end
@@ -108,16 +82,15 @@ class Hand
         cards.all? { |card| cards.first.suit == card.suit }
     end
     def straight?
-        ordered_cards = value_order
-        ordered_cards.each_with_index do |card, i|
+        descending_order.each_with_index do |card, i|
             if i > 0
-                prev_val = ordered_cards[i-1].value_ranking
+                prev_val = descending_order[i-1].value_ranking
                 if card.value == :A
-                    current_value = 1
+                    current_val = 1
                 else
-                    current_value = card.value_ranking
+                    current_val = card.value_ranking
                 end
-                unless prev_val == current_value + 1
+                unless prev_val == current_val + 1
                     return false
                 end
             end
@@ -125,108 +98,19 @@ class Hand
         true
     end
     def four_of_a_kind?
-        grouped_cards.any? { |group| group.length == 4 }
+        group_by_value.any? { |group| group.length == 4 }
     end
     def three_of_a_kind?
-        grouped_cards.any? { |group| group.length == 3 }
+        group_by_value.any? { |group| group.length == 3 }
     end
     def pair?
-        grouped_cards.count { |group| group.length == 2 } == 1
-    end 
+        group_by_value.count { |group| group.length == 2 } == 1
+    end
     def two_pair?
-        grouped_cards.count { |group| group.length == 2 } == 2
+        group_by_value.count { |group| group.length == 2 } == 2
     end
     def full_house?
-        pair? && three_of_a_kind?
+        group_by_value.count { |group| group.length == 2 } == 1 &&
+        group_by_value.any? { |group| group.length == 3 }
     end
-
-    def value_order
-        cards.sort.reverse!
-    end
-
-    def straight_order
-        raise "not a straight" unless straight?
-        ordered_cards = value_order
-        leading_card, second_card = ordered_cards[0..1]
-        if leading_card.value == :A && second_card.value != :K
-            ordered_cards << ordered_cards.shift
-        end
-        ordered_cards
-    end
-
-    def compare_num_of_a_kind(their_hand)
-        hands = [grouped_cards, their_hand.grouped_cards]
-        kinds = hands.map do |hand|
-            hand.max { |set_1, set_2| set_1.length <=> set_2.length }
-        end 
-        if kinds.first.first != kinds.last.last
-            return kinds.first.first <=> kinds.last.last
-        else
-            other_cards = hands.map do |hand| 
-                hand.reject { |card| card == kinds.first.first }
-            end
-            return Hand.new(other_cards.first).compare_high_cards(Hand.new(other_cards.last))
-        end
-    end
-
-    def compare_straights(their_hand)
-        my_leading_card = self.straight_order.first
-        their_leading_card = their_hand.straight_order.first
-        my_leading_card <=> their_leading_card
-    end
-
-    def compare_high_cards(their_hand)
-        my_cards, their_cards = value_order, their_hand.value_order
-        my_cards.length.times do |i|
-            my_card, their_card = my_cards[i], their_cards[i]
-            if my_card != their_card || i == my_cards.length - 1
-                return my_card <=> their_card
-            end
-        end
-    end
-    def compare_only_pairs(their_hand)
-        unless cards.length == 2 && their_hand.cards.length == 2
-            raise "hand must be two cards" 
-        end
-        cards.first <=> their_hand.cards.first
-    end
-    def compare_full_houses(their_hand)
-        hands = [grouped_cards, their_hand.grouped_cards]
-        hands = hands.map do |hand|
-            hand.sort { |set_1, set_2| set_2.length <=> set_1.length }
-        end
-        house_1, pair_1 = hands.first
-        house_2, pair_2 = hands.last
-        if house_1.first != house_2.first
-            return house_1.first <=> house_2.first
-        else
-            return Hand.new(pair_1).compare_only_pairs(Hand.new(pair_2))
-        end
-    end
-    def compare_two_pair(their_hand)
-        hands = [grouped_cards, their_hand.grouped_cards]
-        pairs = hands.map do |hand|
-            hand.select { |cards| cards.length == 2 }
-        end
-        pairs.map! do |set_of_pairs| 
-            set_of_pairs.sort do |pair_1, pair_2| 
-                pair_2.first <=> pair_1.first
-            end
-        end
-        kickers = hands.map do |hand|
-            hand.select { |cards| cards.length == 1 }.flatten
-        end
-        my_high_pair, my_low_pair = pairs.first
-        their_high_pair, their_low_pair = pairs.last
-        my_kicker, their_kicker = kickers
-        if my_high_pair.first != their_high_pair.first
-            my_high_pair.first <=> their_high_pair.first
-        elsif my_low_pair.first != their_low_pair.first
-            my_low_pair.first <=> their_low_pair.first
-        else
-            my_kicker <=> their_kicker
-        end
-    end
-
 end
-

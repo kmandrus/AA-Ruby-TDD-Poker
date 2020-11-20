@@ -6,7 +6,7 @@ class Card
     attr_reader :suit, :value
 
     def self.suits
-        SUIT_RANKINGS.keys
+        %i(Clubs Spades Hearts Diamonds)
     end
     def self.values
         VALUE_RANKINGS.keys
@@ -42,13 +42,6 @@ class Card
     def <=>(card)
         VALUE_RANKINGS[value] <=> VALUE_RANKINGS[card.value]
     end
-
-    SUIT_RANKINGS = {
-        Clubs: 1,
-        Spades: 2,
-        Hearts: 3,
-        Diamonds: 4
-    }.freeze
     VALUE_RANKINGS = {
         '2': 2,
         '3': 3,

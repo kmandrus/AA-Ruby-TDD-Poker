@@ -91,21 +91,35 @@ describe Hand do
         end   
     end
 
+    describe "#include?" do
+        let(:card_in_hand) { Card.new(:Hearts, :K) }
+        let(:card_not_in_hand) { Card.new(:Diamonds, :K)}
+        it "accepts a cards as an arguement" do
+            expect {hand.include?(card_in_hand)}.to_not raise_error
+        end
+        it "returns true if the card is in the hand" do
+            expect(hand.include?(card_in_hand)).to be true
+        end
+        it "returns false if the card is not in the hand" do
+            expect(hand.include?(card_not_in_hand)).to be false
+        end
+    end
+
     describe "#discard" do
         let(:two_of_hearts) { Card.new(:Hearts, :'2') }
         let(:king_of_hearts) { Card.new(:Hearts, :'K')}
-        let(:discards) { [two_of_hearts, king_of_hearts] }
         let(:ace_of_spades) { Card.new(:Spades, :A) }
         it "accepts an array of cards as an arguement" do
-            expect{ hand.discard(discards) }.to_not raise_error
+            expect{ hand.discard(two_of_hearts) }.to_not raise_error
         end
-        it "deletes the passed cards from the hand" do 
-            hand.discard(discards)
+        it "deletes the card from the hand" do 
+            hand.discard(two_of_hearts)
+            hand.discard(king_of_hearts)
             expect(hand.cards).to_not include(two_of_hearts)
             expect(hand.cards).to_not include(king_of_hearts)
         end
-        it "raises an error if it cannot delete any of the cards" do
-            expect{ hand.discard([ace_of_spades]) }.to raise_error "card to discard not in hand"
+        it "raises an error if the card is not present" do
+            expect{ hand.discard(ace_of_spades) }.to raise_error "card not in hand"
         end
     end
 

@@ -94,12 +94,7 @@ describe Card do
                 subject(:ten_of_spades) { described_class.new(:Spades, ten) }
                 it "should return 0" do
                     expect(ten_of_spades <=> ten_of_hearts).to eq(0)
-                end
-            end
-            context "when the cards match both suit and value, it" do
-                subject(:other_ten_of_hearts) { described_class.new(:Hearts, ten) }
-                it "should return 0" do
-                    expect(other_ten_of_hearts <=> ten_of_hearts ).to eq(0)
+                    expect(ace_of_hearts <=> ace_of_spades).to eq(0)
                 end
             end
             context "when the receiver is higher it" do
@@ -108,7 +103,6 @@ describe Card do
                     expect(jack_of_clubs <=> ten_of_spades).to eq(1)
                     expect(ace_of_hearts <=> jack_of_clubs).to eq(1)
                 end
-                
             end
             context "when the receiver is lower it" do
                 it "should return -1" do

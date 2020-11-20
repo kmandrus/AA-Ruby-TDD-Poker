@@ -20,21 +20,16 @@ class Hand
         update_hand_type
     end
 
-    def discard(some_cards)
-        some_cards.each do |card_to_discard|
-            card_found = false
-            @cards.each_with_index do |card_in_hand, i|
-                if card_in_hand.value == card_to_discard.value &&
-                    card_in_hand.suit == card_to_discard.suit
-                    
-                    card_found = true
-                    @cards.delete_at(i)
-                    break
-                end
-            end
-            raise "card to discard not in hand" unless card_found
+    def discard(card)
+        raise "card not in hand" unless self.include?(card)
+        @cards.delete(card)
+    end
+    
+    def include?(card)
+        cards.any? do |card_in_hand|
+            card_in_hand.value == card.value && 
+            card_in_hand.suit == card.suit
         end
-        some_cards.length
     end
 
     def <=>(other_hand)

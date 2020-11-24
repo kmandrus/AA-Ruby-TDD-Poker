@@ -51,6 +51,11 @@ describe Player do
             player.new_round
             expect(player.folded?).to be false
         end
+        it "empties the player's personal pot" do
+            player.add_to_pot(25)
+            player.new_round
+            expect(player.pot).to eq(0)
+        end
     end
 
     describe "#add_to_pot" do

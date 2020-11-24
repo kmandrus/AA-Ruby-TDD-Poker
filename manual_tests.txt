@@ -1,0 +1,17 @@
+load 'lib/card.rb'
+load 'lib/hand.rb'
+h1 = Hand.new(Card.cards_from_string("DA HA SA CA C3"))
+h2 = Hand.new(Card.cards_from_string("DJ HJ SJ CJ H7"))
+h1 <=> h2
+
+load 'lib/player.rb'
+load 'lib/hand.rb'
+load 'lib/card.rb'
+load 'lib/display.rb'
+display = Display.new
+cards = Card.cards_from_string('DA HA CA SA H2')
+hand = Hand.new(cards)
+q
+player = Player.new('skye', hand, 100, display)
+q
+player.take_action(2)

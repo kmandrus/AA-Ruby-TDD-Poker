@@ -3,8 +3,8 @@ require_relative 'hand.rb'
 require_relative 'display.rb'
 
 class Player
-    attr_reader :name, :pot, :money
-    attr_accessor :hand
+    attr_reader :name, :pot 
+    attr_accessor :hand, :money
     def initialize(name, hand, money, display)
         @name = name
         @pot = 0
@@ -46,6 +46,9 @@ class Player
             return discard_cards
         end
         begin
+            unless cards.all? { |card| hand.include?(card) }
+                raise "card not in hand"
+            end
             cards.each { |card| @hand.discard(card) } 
         rescue => exception
             @display.add_message(exception.message)
@@ -67,18 +70,6 @@ class Player
 
     def fold
         @folded = true
-        @display.add_message("#{name} folded")
-    end
-    def raise_bet(amount, current_bet)
-        total = (current_bet - pot) + amount
-        add_to_pot(total)
-        @display.add_message("#{name} raised by #{amount}")
-    end
-    def see(current_bet)
-        current_bet
-        amount = current_bet - pot
-        add_to_pot(amount)
-        @display.add_message("#{name} saw the bet")
     end
 
     private
@@ -87,8 +78,8 @@ class Player
         begin
             cmd, arg = parse_action(input, max_raise)
         rescue => exception
-            display.add_message(exception.message)
-            display.render
+            @display.add_message(exception.message)
+            @display.render
             nil
         else
             [cmd, arg]
@@ -104,7 +95,7 @@ class Player
             cmd = :raise_bet
             begin
                 arg = arg.to_i
-                unless arg > 0 && arg <= max_raise
+                unless arg > 0 && arg <= max_raise 
                     raise "invalid raise amount"
                 end
             rescue

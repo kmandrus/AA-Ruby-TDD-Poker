@@ -3,18 +3,19 @@ require_relative "hand.rb"
 require "byebug"
 
 class Display
-    attr_accessor :instructions, :hand
+    attr_accessor :instructions, :hand, :round_number
     def initialize
         @message_history = []
         @instructions = nil
-        @player
-        @pot
+        @player = nil
+        @pot = 0
+        @round_number = nil
     end
     def render
         
 
         system("clear")
-        puts "        Poker - 5 Card Draw        "
+        puts "        Poker - 5 Card Draw - Round #{@round_number}"
         
         if @message_history.size > 0
             puts
